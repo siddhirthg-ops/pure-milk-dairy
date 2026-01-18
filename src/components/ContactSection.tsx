@@ -304,7 +304,7 @@ const ContactSection = () => {
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className="font-display text-xl font-bold text-foreground"
               >
-                Siddhart Anil Gadhe
+                Siddharth Anil Gadhe
               </motion.h3>
               <motion.p
                 initial={{ opacity: 0, y: 10 }}
@@ -313,7 +313,7 @@ const ContactSection = () => {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="text-sm text-muted-foreground mt-1"
               >
-                Owner
+                Founder and CEO
               </motion.p>
             </div>
 
