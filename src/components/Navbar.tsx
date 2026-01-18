@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Milk } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import businessLogo from "@/assets/businesslogo.jpeg";
 
 const navLinks = [
   { href: "#home", label: "Home" },
@@ -34,9 +35,11 @@ const Navbar = () => {
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => scrollToSection("#home")}
           >
-            <div className="w-10 h-10 bg-gradient-hero rounded-full flex items-center justify-center">
-              <Milk className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img
+              src={businessLogo}
+              alt="Pure Milk Dairy Logo"
+              className="w-10 h-10 rounded-full object-cover"
+            />
             <span className="font-display text-xl md:text-2xl font-bold text-foreground">
               Pure Milk
             </span>

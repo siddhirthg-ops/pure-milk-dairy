@@ -1,4 +1,4 @@
-import { Milk } from "lucide-react";
+import businessLogo from "@/assets/businesslogo.jpeg";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -9,9 +9,11 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-hero rounded-full flex items-center justify-center">
-              <Milk className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img
+              src={businessLogo}
+              alt="Pure Milk Dairy Logo"
+              className="w-10 h-10 rounded-full object-cover"
+            />
             <span className="font-display text-xl font-bold text-background">
               Pure Milk
             </span>
