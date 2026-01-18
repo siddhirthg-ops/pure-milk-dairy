@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, Mail, MapPin, Send, ShoppingBag, Handshake } from "lucide-react";
+import ownerPhoto from "@/assets/ownerphoto.jpeg";
 
 const ContactSection = () => {
   const { toast } = useToast();
@@ -19,7 +20,7 @@ const ContactSection = () => {
   // Owner's email from contact section
   const ownerEmail = "puremilkdairy757@gmail.com";
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
     // Validate form data
@@ -44,28 +45,48 @@ const ContactSection = () => {
     }
     
     try {
-      // Create email subject based on inquiry type
+      // First, save to database via API
+      // For Vercel, use /api/submit-form, for local dev use full URL if needed
+      const apiUrl = import.meta.env.VITE_API_URL || '/api/submit-form';
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          message: formData.message.trim(),
+          inquiryType: inquiryType,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to submit form');
+      }
+
+      // If database save successful, also send email notification
       const customerName = formData.name.trim() || "Customer";
       const subject = inquiryType === "order" 
         ? `Order Inquiry from ${customerName}`
         : `Franchise Application from ${customerName}`;
       
-      // Create email body with form data
       const emailBody = `${inquiryType === "order" ? "Order Details" : "Franchise Application Details"}:\n\n` +
         `Name: ${formData.name.trim()}\n` +
         `Email: ${formData.email.trim()}\n` +
         `Phone: ${formData.phone.trim()}\n\n` +
         `${inquiryType === "order" ? "Order Details" : "Application Details"}:\n${formData.message.trim()}\n\n` +
-        `---\nThis inquiry was submitted through the Pure Milk Dairy website.`;
+        `---\nThis inquiry was submitted through the Pure Milk Dairy website and saved to database.`;
       
-      // Encode the email body for mailto link
       const encodedBody = encodeURIComponent(emailBody);
       const encodedSubject = encodeURIComponent(subject);
-      
-      // Create mailto link that opens user's email client
       const mailtoLink = `mailto:${ownerEmail}?subject=${encodedSubject}&body=${encodedBody}`;
       
-      // Open email client using a hidden anchor to avoid page navigation
+      // Open email client for notification
       const link = document.createElement("a");
       link.href = mailtoLink;
       link.style.display = "none";
@@ -74,21 +95,54 @@ const ContactSection = () => {
       document.body.removeChild(link);
       
       toast({
-        title: "Email Client Opened!",
-        description: "Your email client should open with a pre-filled message. Please send it to complete your inquiry.",
+        title: "Success!",
+        description: "Your inquiry has been saved and your email client opened. Please send the email to complete the notification.",
       });
       
-      // Clear form after a short delay
-      setTimeout(() => {
-        setFormData({ name: "", email: "", phone: "", message: "" });
-      }, 1500);
+      // Clear form
+      setFormData({ name: "", email: "", phone: "", message: "" });
+      
     } catch (error) {
-      console.error("Error opening email client:", error);
-      toast({
-        title: "Error",
-        description: "Unable to open email client. Please try clicking the email address directly or contact us at " + ownerEmail,
-        variant: "destructive",
-      });
+      console.error("Error submitting form:", error);
+      
+      // Fallback to email-only if database fails
+      try {
+        const customerName = formData.name.trim() || "Customer";
+        const subject = inquiryType === "order" 
+          ? `Order Inquiry from ${customerName}`
+          : `Franchise Application from ${customerName}`;
+        
+        const emailBody = `${inquiryType === "order" ? "Order Details" : "Franchise Application Details"}:\n\n` +
+          `Name: ${formData.name.trim()}\n` +
+          `Email: ${formData.email.trim()}\n` +
+          `Phone: ${formData.phone.trim()}\n\n` +
+          `${inquiryType === "order" ? "Order Details" : "Application Details"}:\n${formData.message.trim()}\n\n` +
+          `---\nThis inquiry was submitted through the Pure Milk Dairy website.`;
+        
+        const encodedBody = encodeURIComponent(emailBody);
+        const encodedSubject = encodeURIComponent(subject);
+        const mailtoLink = `mailto:${ownerEmail}?subject=${encodedSubject}&body=${encodedBody}`;
+        
+        const link = document.createElement("a");
+        link.href = mailtoLink;
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Saved via Email (Database unavailable)",
+          description: "Your inquiry was sent via email. Database save failed but email notification was sent.",
+        });
+        
+        setFormData({ name: "", email: "", phone: "", message: "" });
+      } catch (emailError) {
+        toast({
+          title: "Error",
+          description: "Unable to submit form. Please try again or contact us directly at " + ownerEmail,
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -220,6 +274,49 @@ const ContactSection = () => {
             transition={{ duration: 0.6 }}
             className="space-y-8"
           >
+            {/* Owner Photo and Name */}
+            <div className="flex flex-col items-center text-center mb-8">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="mb-4 relative"
+              >
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-primary/20 shadow-elevated">
+                  <img
+                    src={ownerPhoto}
+                    alt="Owner Siddhart Anil Gadhe"
+                    className="w-full h-full object-cover object-center"
+                    style={{
+                      objectPosition: 'center center',
+                      transform: 'scale(1.5)',
+                      minWidth: '100%',
+                      minHeight: '100%',
+                    }}
+                  />
+                </div>
+              </motion.div>
+              <motion.h3
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="font-display text-xl font-bold text-foreground"
+              >
+                Siddhart Anil Gadhe
+              </motion.h3>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="text-sm text-muted-foreground mt-1"
+              >
+                Owner
+              </motion.p>
+            </div>
+
             <div>
               <h3 className="font-display text-2xl font-bold text-foreground mb-6">
                 Contact Information
